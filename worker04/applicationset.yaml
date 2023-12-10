@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: bookinfo
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: node01
+        url: "https://101.33.32.199:6443"
+      - cluster: node02
+        url: "https://43.129.233.116:6443"
+  template:
+    metadata:
+      name: '{{cluster}}-bookinfo'
+    spec:
+      project: "my-project"
+      source:
+        repoURL: https://github.com/xzclinux/devops-worker.git
+        targetRevision: HEAD
+        path: worker04/app/
+      destination:
+        server: '{{url}}'
+        namespace: guestbook

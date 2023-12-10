@@ -1,0 +1,53 @@
+pipeline {
+    agent none
+    stages {
+        stage('iac  apply') {
+            when {
+                changeset "worker/*"
+            }
+            agent {
+                kubernetes {
+                    defaultContainer 'apply'
+                    //workspaceVolume persistentVolumeClaimWorkspaceVolume(claimName: "jenkins-workspace-pvc", readOnly: false)
+                    yaml """
+kind: Pod
+spec:
+  containers:
+  - name: terraform
+    image: hashicorp/terraform:1.6.5
+    imagePullPolicy: Always
+    command:
+    - sleep
+    args:
+    - 99d
+    env:
+    - name: TF_VAR_ak
+        valueFrom:
+        secretKeyRef:
+            name: cloud_secret
+            key: ak
+    - name: MTF_VAR_sk
+        valueFrom:
+        secretKeyRef:
+            name: cloud_secret
+            key: sk
+
+"""
+                }
+            }
+
+
+            steps {
+                container(name: 'terraform', shell: '/bin/sh') {
+                        sh '''#!/bin/sh
+                            terraform init && terraform apply 
+                        '''
+                    
+                }
+            }
+        }
+
+
+
+    }
+}
